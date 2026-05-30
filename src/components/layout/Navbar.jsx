@@ -7,11 +7,11 @@ import LanguageSelector from './LanguageSelector';
 import MobileMenu from './MobileMenu';
 
 const navItems = [
-  { id: 'home', labelKey: 'home', path: '/' },
-  { id: 'upload', labelKey: 'upload', path: '/upload' },
-  { id: 'result', labelKey: 'result', path: '/result' },
-  { id: 'shops', labelKey: 'shops', path: '/shops' },
-  { id: 'history', labelKey: 'history', path: '/history' }
+  { id: 'home', labelKey: 'Home', path: '/' },
+  { id: 'upload', labelKey: 'Upload', path: '/upload' },
+  { id: 'result', labelKey: 'Result', path: '/result' },
+  { id: 'shops', labelKey: 'Shops', path: '/shops' },
+  { id: 'history', labelKey: 'History `', path: '/history' }
 ];
 
 const Navbar = () => {

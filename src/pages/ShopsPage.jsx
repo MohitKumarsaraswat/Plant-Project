@@ -15,6 +15,32 @@ const ShopsPage = () => {
   const [shops, setShops] = useState([]);
   const [located, setLocated] = useState(false);
 
+  const amityCenter = { latitude: 28.6139, longitude: 77.2090 };
+  const [maxDistanceKm, setMaxDistanceKm] = useState(10);
+
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const haversineKm = (a, b) => {
+    if (!a || !b) return Infinity;
+    const R = 6371;
+    const dLat = toRad(b.latitude - a.latitude);
+    const dLon = toRad(b.longitude - a.longitude);
+    const lat1 = toRad(a.latitude);
+    const lat2 = toRad(b.latitude);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
+
+  const userPoint = location || amityCenter;
+
+  const filteredAndSortedShops = shops
+    .map((s) => {
+      const km = s?.location ? haversineKm(userPoint, s.location) : Infinity;
+      const kmText = km === Infinity ? s.distance : `${km.toFixed(km < 10 ? 1 : 0)} km`;
+      return { ...s, _distanceKm: km, distance: kmText };
+    })
+    .filter((s) => (Number.isFinite(s._distanceKm) ? s._distanceKm <= maxDistanceKm : true))
+    .sort((a, b) => a._distanceKm - b._distanceKm);
+
   const loadShops = async () => {
     if (location) {
       try {
@@ -57,7 +83,7 @@ const ShopsPage = () => {
   return (
     <PageWrapper>
       <div className="max-w-xl mx-auto">
-        <div className="text-center mb-8 animate-fade-up">
+        <div className="text-center mb-4 sm:mb-8 animate-fade-up">
           <h1 className="text-3xl sm:text-4xl font-bold text-green-900 mb-2 font-display">{t.shopsTitle}</h1>
           <p className="text-green-700/70">Find supplies near you</p>
         </div>
@@ -76,7 +102,30 @@ const ShopsPage = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {shops.map((shop, i) => <ShopCard key={shop.id} shop={shop} t={t} index={i} />)}
+            <div className="flex items-center justify-between gap-3 px-2">
+              <div className="text-xs text-green-700/70 font-semibold">{t.distance}</div>
+              <div className="flex gap-2 items-center">
+                {[1, 3, 5, 10, 20].map((km) => (
+                  <button
+                    key={km}
+                    onClick={() => setMaxDistanceKm(km)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
+                      maxDistanceKm === km
+                        ? 'bg-green-600 text-white border-green-600'
+                        : 'bg-white/70 text-green-800 border-green-200 hover:bg-green-100'
+                    }`}
+                    aria-pressed={maxDistanceKm === km}
+                    data-testid={`radius-${km}`}
+                  >
+                    {km}km
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {filteredAndSortedShops.map((shop, i) => (
+              <ShopCard key={shop.id} shop={shop} t={t} index={i} />
+            ))}
             <div id="map" className="w-full h-64 rounded-2xl mt-6 shadow-lg" />
           </div>
         )}
